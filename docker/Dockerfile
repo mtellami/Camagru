@@ -7,7 +7,6 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
 WORKDIR /var/www/html
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/camagru.ini
 COPY docker/php/fpm.conf /usr/local/etc/php-fpm.d/zzz-camagru.conf
-COPY docker/mail/msmtprc /etc/msmtprc
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/start-web.sh /usr/local/bin/start-web
 COPY . .

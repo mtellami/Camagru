@@ -31,7 +31,7 @@ flowchart TD
     Maintenance --> Publisher
     Maintenance --> Outbox[Mail/Outbox.php]
     Outbox --> DB
-    Outbox -->|PHP mail and msmtp| Mailpit[Mailpit]
+    Outbox -->|PHP mail and msmtp| SMTP[Configured SMTP server]
 ```
 
 [`App.php`](src/App.php) dispatches URLs and applies shared checks. Feature behavior lives in [`Http/Controllers/`](src/Http/Controllers/). Controllers use [`PhotoRepository.php`](src/Repositories/PhotoRepository.php) for shared photo reads and [`Database.php`](src/Database/Database.php) for other prepared queries and transactions. There is no ORM.
@@ -387,7 +387,8 @@ flowchart TD
     PHP --> DB[db container: PostgreSQL 17]
     DB --> DBVolume[(database volume)]
     PHP --> Storage[(media volume mounted at storage)]
-    MSMTP -->|SMTP port 1025| Mail[mailpit container]
+    MSMTP -->|Configured SMTP host, port, authentication, TLS| SMTP[External SMTP server]
+    MSMTP -->|Development: SMTP port 1025| Mail[mailpit container, dev profile]
     Browser -->|Default localhost port 8025| Mail
 ```
 
@@ -398,7 +399,7 @@ flowchart TD
 | [nginx.conf](docker/nginx/nginx.conf) | Serve assets and route app URLs to the only executable PHP entry point, `public/index.php`. |
 | [start-web.sh](docker/start-web.sh) | Validate environment, start/supervise Nginx and PHP-FPM, and stop both if either exits. |
 | [php.ini](docker/php/php.ini), [fpm.conf](docker/php/fpm.conf) | Runtime/upload limits, session/log paths, PHP mail transport, and FPM settings. |
-| [msmtprc](docker/mail/msmtprc) | Route SMTP to Mailpit. |
+| [Smtp.php](src/Mail/Smtp.php) | Validate SMTP settings and generate runtime `/etc/msmtprc`; use Mailpit in development or an external SMTP provider. |
 | [Config.php](src/Config.php), [.env.example](.env.example) | Read and validate developer-supplied environment configuration. Startup requires an existing .env file and rejects missing values or placeholder secrets. |
 | [Makefile](Makefile) | Start, stop, and log commands. |
 

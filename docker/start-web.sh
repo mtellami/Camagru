@@ -6,11 +6,14 @@ php -r '
 require "/var/www/html/src/bootstrap.php";
 try {
     Camagru\Config::validateStartup();
+    file_put_contents("/etc/msmtprc", Camagru\Mail\Smtp::configuration());
 } catch (Throwable $error) {
     fwrite(STDERR, "Configuration error: " . $error->getMessage() . PHP_EOL);
     exit(1);
 }
 '
+chown root:www-data /etc/msmtprc
+chmod 640 /etc/msmtprc
 
 # Both masters receive graceful shutdown signals; Docker's init reaps orphans.
 shutdown() {

@@ -36,6 +36,7 @@ final class Config
         if (!in_array(self::get('COOKIE_SECURE', '0'), ['0', '1'], true)) {
             throw new \RuntimeException('COOKIE_SECURE must be 0 or 1.');
         }
+        \Camagru\Mail\Smtp::configuration();
     }
 
     /** Read an environment value, falling back only when it is absent. */

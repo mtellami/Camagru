@@ -30,6 +30,29 @@ make up
 
 Open the confirmation email in Mailpit after signing up. Change `APP_URL`, `APP_PORT`, and `MAILPIT_PORT` in `.env` if needed.
 
+### SMTP configuration
+
+The example `.env` enables Mailpit for development with `COMPOSE_PROFILES=dev`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, and `SMTP_ENCRYPTION=none`. Leave `SMTP_USER` and `SMTP_PASSWORD` empty for Mailpit.
+
+To use an external SMTP provider, update `.env`:
+
+```dotenv
+COMPOSE_PROFILES=
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_ENCRYPTION=starttls
+SMTP_USER=your-smtp-username
+SMTP_PASSWORD='your-smtp-password'
+SMTP_FROM=no-reply@your-domain.com
+MAIL_FROM="Camagru Accounts <no-reply@your-domain.com>"
+```
+
+Use the host, credentials, and authorized sender address supplied by your provider. `SMTP_FROM` is the envelope sender; `MAIL_FROM` is the visible From header. `SMTP_ENCRYPTION` accepts `none`, `starttls` (usually port 587), or `tls` (implicit TLS, usually port 465). TLS connections verify the server certificate. Set both credentials together, or leave both empty for a relay without authentication. Single quotes around the password preserve literal `$` and `#` characters in Compose's `.env` format.
+
+Run `make up` after changing `.env`; this recreates the web container with the new settings. When switching an existing development stack to an external provider, also stop its inbox with `docker compose --profile dev stop mailpit`. Mailpit starts only when the `dev` profile is enabled and is not a dependency of the web service. Startup rejects missing or invalid SMTP settings. Existing installations should copy the new SMTP and profile settings from `.env.example`.
+
+Run `php tests/smtp.php` to check SMTP configuration validation without contacting a provider.
+
 ```sh
 make down   # Stop; keep accounts and images
 make logs   # Follow service logs
