@@ -10,3 +10,5 @@
 storage
 *.log
 .DS_Store
+
+vendor

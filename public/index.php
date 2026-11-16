@@ -8,17 +8,13 @@ use Camagru\Http\Http;
 use Camagru\Http\HttpError;
 use Camagru\Maintenance;
 
-// Deliver committed email jobs and clean up during ordinary web requests.
-// Health probes should only check readiness, without triggering side effects.
-if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) !== '/health') {
+// Hold response output until request maintenance has completed.
+$maintenance = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) !== '/health';
+if ($maintenance) {
+    ob_start();
     register_shutdown_function(static function (): void {
-        if (http_response_code() >= 500) {
-            return;
-        }
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-        Maintenance::run();
+        if (session_status() === PHP_SESSION_ACTIVE) { session_write_close(); }
+        if (http_response_code() < 500) { Maintenance::run(); }
     });
 }
 

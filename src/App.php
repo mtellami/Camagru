@@ -20,12 +20,16 @@ final class App
     public function run(): never
     {
         Http::headers();
-        Auth::start();
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $method = $_SERVER['REQUEST_METHOD'];
         if ($method === 'HEAD') {
             $method = 'GET';
         }
+        if ($path === '/health' && $method === 'GET') {
+            Database::query('SELECT 1');
+            Http::json(['ok' => true]);
+        }
+        Auth::start();
         if ($method === 'POST') {
             if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 24 * 1024 * 1024) {
                 throw new HttpError(413, 'The complete upload must be below 24 MiB.');
@@ -35,10 +39,6 @@ final class App
         }
         if ($method !== 'GET') {
             throw new HttpError(405, 'This method is not supported.');
-        }
-        if ($path === '/health') {
-            Database::query('SELECT 1');
-            Http::json(['ok' => true]);
         }
         if ($path === '/') {
             Http::render('home', ['title' => 'Home']);

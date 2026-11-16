@@ -1,41 +1,19 @@
 services:
-  db:
-    image: postgres:17-bookworm@sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994
-    environment:
-      POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env}
-      POSTGRES_USER: ${DB_USER:?Set DB_USER in .env}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-    volumes:
-      - database:/var/lib/postgresql/data
-      - ./src/Database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
-    healthcheck:
-      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
-      interval: 2s
-      timeout: 3s
-      retries: 30
-  mailpit:
-    profiles: [dev]
-    image: axllent/mailpit:v1.28.2@sha256:28a161f4a39c70671d0fb771a6e7a3abe6d2144c0e2a595ff72767ab63cd14f6
-    ports:
-      - '127.0.0.1:${MAILPIT_PORT:-8025}:8025'
   web:
+    image: ${WEB_IMAGE:-camagru:production}
     build:
       context: .
       dockerfile: docker/Dockerfile
-    env_file: .env
+    env_file: .env.production
     init: true
     ports:
-      - '127.0.0.1:${APP_PORT:-8080}:80'
+      - '127.0.0.1:${APP_PORT:-8080}:8080'
     volumes:
       - media:/var/www/html/storage
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
-      test: [CMD, curl, --fail, --silent, --output, /dev/null, http://127.0.0.1/health]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      test: [CMD, curl, --fail, --silent, http://127.0.0.1:8080/health]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 volumes:
-  database:
   media:

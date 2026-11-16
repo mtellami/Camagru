@@ -102,10 +102,17 @@ final class PhotoPublisher
                 file_put_contents($path . '.tmp', Gif::assemble($frames), LOCK_EX);
                 rename($path . '.tmp', $path);
             }
+            foreach ($paths as $path) {
+                \Camagru\Storage\Media::upload($path);
+            }
+            if (\Camagru\Storage\Media::remote()) {
+                foreach ($paths as $path) { unlink($path); }
+            }
             Database::query("UPDATE photos SET state='ready' WHERE id=?", [$row['id']]);
             $row['state'] = 'ready';
             return $row;
         } catch (\Throwable $error) {
+            foreach ($paths as $path) { \Camagru\Storage\Media::delete(basename($path)); }
             foreach ($paths as $path) {
                 if (is_file($path)) {
                     unlink($path);
@@ -126,8 +133,8 @@ final class PhotoPublisher
             "SELECT id,media_key FROM photos WHERE state='deleting' OR (state='staging' AND created_at<NOW()-INTERVAL '10 minutes')",
         )->fetchAll();
         foreach ($rows as $row) {
-            foreach (glob(Config::storage() . '/media/' . $row['media_key'] . '*') as $path) {
-                unlink($path);
+            foreach (['.jpg', '-thumb.jpg', '.gif'] as $suffix) {
+                \Camagru\Storage\Media::delete($row['media_key'] . $suffix);
             }
             Database::query("DELETE FROM photos WHERE id=? AND state<>'ready'", [$row['id']]);
         }

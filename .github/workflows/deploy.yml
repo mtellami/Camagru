@@ -1,0 +1,28 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare disposable development configuration
+        run: |
+          cp .env.example .env
+          sed -i "s/GENERATE_ME/$(openssl rand -hex 32)/g" .env
+      - run: docker compose -f compose.dev.yaml config --quiet
+      - run: docker build -t camagru:test -f docker/Dockerfile .
+      - run: docker run --rm camagru:test sh -c 'find src public bin tests -name "*.php" -exec php -l {} \; && php tests/config.php'
+      - run: docker compose -f compose.dev.yaml up --build -d --wait
+      - name: Check health, migrations and database sessions
+        run: |
+          curl --fail http://localhost:8080/health
+          docker compose -f compose.dev.yaml exec -T -e CI_DISPOSABLE_DB=1 web php tests/database.php
+          docker compose -f compose.dev.yaml exec -T -e CI_DISPOSABLE_DB=1 web php tests/sessions.php
+      - if: always()
+        run: docker compose -f compose.dev.yaml down -v

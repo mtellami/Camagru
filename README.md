@@ -17,7 +17,7 @@ Replace both `GENERATE_ME` values in `.env`: use a separate random value for `DB
 
 Keep `APP_URL` equal to the browser URL, including its port, so CSRF origin checks work. Set `COOKIE_SECURE=1` when using HTTPS.
 
-The app requires an existing `.env`; startup rejects missing configuration, placeholder secrets, and invalid key/URL/port settings. Configuration is never generated automatically.
+Local Compose requires an existing `.env`; application startup rejects missing configuration, placeholder secrets, and invalid key/URL/port settings. Configuration is never generated automatically.
 
 Then start the app:
 
@@ -49,9 +49,9 @@ MAIL_FROM="Camagru Accounts <no-reply@your-domain.com>"
 
 Use the host, credentials, and authorized sender address supplied by your provider. `SMTP_FROM` is the envelope sender; `MAIL_FROM` is the visible From header. `SMTP_ENCRYPTION` accepts `none`, `starttls` (usually port 587), or `tls` (implicit TLS, usually port 465). TLS connections verify the server certificate. Set both credentials together, or leave both empty for a relay without authentication. Single quotes around the password preserve literal `$` and `#` characters in Compose's `.env` format.
 
-Run `make up` after changing `.env`; this recreates the web container with the new settings. When switching an existing development stack to an external provider, also stop its inbox with `docker compose --profile dev stop mailpit`. Mailpit starts only when the `dev` profile is enabled and is not a dependency of the web service. Startup rejects missing or invalid SMTP settings. Existing installations should copy the new SMTP and profile settings from `.env.example`.
+Run `make up` after changing `.env`; this recreates the web container with the new settings. When switching an existing development stack to an external provider, also stop its inbox with `docker compose -f compose.dev.yaml --profile dev stop mailpit`. Mailpit starts only when the `dev` profile is enabled and is not a dependency of the web service. Startup rejects missing or invalid SMTP settings. Existing installations should copy the new SMTP and profile settings from `.env.example`.
 
-Run `php tests/smtp.php` to check SMTP configuration validation without contacting a provider.
+Run `php tests/config.php` to check SMTP configuration validation without contacting a provider.
 
 ```sh
 make down   # Stop; keep accounts and images
@@ -63,3 +63,20 @@ Nginx and PHP-FPM share the `web` container. Container configuration lives in `d
 PHP lives in `src/`, templates in `src/Views/`, and static assets in `public/assets/`. JavaScript uses native modules; there is no package manager or build step.
 
 Select several stickers to combine them on photos or GIFs; select None to clear them. The live preview and server apply stickers in picker order.
+
+## Development and production
+
+`make up`, `make down`, and `make logs` now explicitly use `compose.dev.yaml`.
+For manual commands use `docker compose -f compose.dev.yaml …`; existing volume
+names are preserved when using the same directory/project name. Keep `.env` for
+local development. Mailpit remains the free local inbox and requires no domain.
+
+`compose.yaml` contains only the production web service. Copy
+`.env.production.example` to `.env.production` and supply real values before
+`make prod-up`. Neither configuration nor credentials are embedded in the image.
+Production database initialization is explicit: run `php bin/migrate.php` using
+the direct Neon host before starting a fresh deployment. An existing unversioned
+schema deliberately requires manual review rather than automatic adoption.
+Local development continues to initialize PostgreSQL using `schema.sql`.
+
+See [Render deployment](deploy/README.md) for setup, CI configuration, and rollback.

@@ -12,3 +12,10 @@
 *.log
 *.swp
 *~
+
+/vendor/
+!.env.production.example
+
+/deploy/render-service.json
+
+__pycache__/

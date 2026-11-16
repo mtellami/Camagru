@@ -7,11 +7,12 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
 WORKDIR /var/www/html
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/camagru.ini
 COPY docker/php/fpm.conf /usr/local/etc/php-fpm.d/zzz-camagru.conf
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf.template
 COPY docker/start-web.sh /usr/local/bin/start-web
 COPY . .
 RUN chmod +x /usr/local/bin/start-web \
     && mkdir -p storage/media storage/tmp storage/sessions storage/logs \
     && chown -R www-data:www-data storage
-EXPOSE 80
+ENV PORT=8080
+EXPOSE 8080
 CMD ["start-web"]

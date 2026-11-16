@@ -1,6 +1,9 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+PORT=${PORT:-8080}
+[[ "$PORT" =~ ^[0-9]+$ ]] && (( PORT > 0 && PORT < 65536 )) || exit 1
+sed "s/__PORT__/$PORT/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 # Fail with an actionable message before launching either server.
 php -r '
 require "/var/www/html/src/bootstrap.php";
@@ -22,6 +25,11 @@ shutdown() {
     wait "$php_pid" 2>/dev/null || true
     wait "$nginx_pid" 2>/dev/null || true
 }
+
+# Free Render services have no pre-deploy command; migrations are serialized in SQL.
+if [[ "${AUTO_MIGRATE:-0}" == 1 ]]; then
+    DB_HOST="${DB_DIRECT_HOST:-${DB_HOST}}" php /var/www/html/bin/migrate.php
+fi
 
 nginx -t
 php-fpm --test
