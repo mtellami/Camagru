@@ -13,9 +13,4 @@
 *.swp
 *~
 
-/vendor/
-!.env.production.example
-
-/deploy/render-service.json
-
-__pycache__/
+!docker/.env.production.example

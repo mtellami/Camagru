@@ -21,18 +21,13 @@ final class Database
     /** Lazily open one PostgreSQL connection with native prepared statements. */
     public static function connection(): PDO
     {
-        return self::$connection ??= self::open();
-    }
-
-    public static function open(): PDO
-    {
-        return new PDO(
+        return self::$connection ??= new PDO(
             'pgsql:host=' .
                 Config::get('DB_HOST', 'db') .
                 ';port=' .
                 Config::get('DB_PORT', '5432') .
                 ';dbname=' .
-                Config::get('DB_NAME', 'camagru') . ';sslmode=' . Config::get('PGSSLMODE', 'disable') . ';channel_binding=' . Config::get('PGCHANNELBINDING', 'prefer') . ';connect_timeout=15',
+                Config::get('DB_NAME', 'camagru'),
             Config::get('DB_USER', 'camagru'),
             Config::get('DB_PASSWORD'),
             [

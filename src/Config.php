@@ -36,10 +36,6 @@ final class Config
         if (!in_array(self::get('COOKIE_SECURE', '0'), ['0', '1'], true)) {
             throw new \RuntimeException('COOKIE_SECURE must be 0 or 1.');
         }
-        foreach (['MEDIA_DRIVER' => ['local', 'pgsql'], 'SESSION_DRIVER' => ['files', 'pgsql'], 'PGSSLMODE' => ['disable', 'require', 'verify-ca', 'verify-full'], 'PGCHANNELBINDING' => ['disable', 'prefer', 'require']] as $key => $allowed) {
-            if (!in_array(self::get($key, $allowed[0]), $allowed, true)) { throw new \RuntimeException('Invalid ' . $key); }
-        }
-
         \Camagru\Mail\Smtp::configuration();
     }
 

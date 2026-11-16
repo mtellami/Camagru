@@ -423,13 +423,3 @@ The `media` volume contains the whole `storage/` directory, including media, ses
 | Email | `Email.php`, `Views/emails/message.php`, `Outbox.php`, and `Maintenance.php`. |
 
 Functions carry short comments explaining their purpose. Comments around non-obvious steps explain retry safety, authorization, file lifecycle, or transaction boundaries.
-
-
-## Render production deployment
-
-Development uses compose.dev.yaml; production compose.yaml has only web.
-Render runs the same Dockerfile on its free plan. PostgreSQL sessions and binary
-media objects live in Neon; local temporary files are removed after publication.
-Media routes retain their existing URLs. Versioned migrations run under a SQL
-transaction lock at startup when AUTO_MIGRATE=1. GitHub Actions runs CI and Render
-auto-deploys main after checks pass. See [deployment instructions](deploy/README.md).

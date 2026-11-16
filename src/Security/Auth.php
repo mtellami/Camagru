@@ -27,7 +27,6 @@ final class Auth
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        if (Config::get('SESSION_DRIVER', 'files') === 'pgsql') { session_set_save_handler(new DatabaseSession(), true); }
         session_start();
         $now = time();
         if (

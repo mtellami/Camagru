@@ -11,4 +11,5 @@ storage
 *.log
 .DS_Store
 
-vendor
+**/.env
+**/.env.*

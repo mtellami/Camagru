@@ -148,10 +148,6 @@ final class PhotoController
             $photo['media_key'] .
             ($variant === 'thumb' ? '-thumb' : '') .
             $extension;
-        if (\Camagru\Storage\Media::remote()) {
-            header('Content-Type: ' . ($extension === '.gif' ? 'image/gif' : 'image/jpeg'));
-            \Camagru\Storage\Media::stream(basename($path));
-        }
         if (!is_file($path)) {
             throw new HttpError(404, 'This image is unavailable.');
         }

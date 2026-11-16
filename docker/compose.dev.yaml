@@ -1,3 +1,5 @@
+name: camagru
+
 services:
   db:
     image: postgres:17-bookworm@sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994
@@ -7,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - database:/var/lib/postgresql/data
-      - ./src/Database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ../src/Database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
       interval: 2s
@@ -20,9 +22,9 @@ services:
       - '127.0.0.1:${MAILPIT_PORT:-8025}:8025'
   web:
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
-    env_file: .env
+    env_file: ../.env
     init: true
     ports:
       - '127.0.0.1:${APP_PORT:-8080}:8080'

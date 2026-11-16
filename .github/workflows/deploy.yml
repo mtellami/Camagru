@@ -15,14 +15,11 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s/GENERATE_ME/$(openssl rand -hex 32)/g" .env
-      - run: docker compose -f compose.dev.yaml config --quiet
-      - run: docker build -t camagru:test -f docker/Dockerfile .
-      - run: docker run --rm camagru:test sh -c 'find src public bin tests -name "*.php" -exec php -l {} \; && php tests/config.php'
-      - run: docker compose -f compose.dev.yaml up --build -d --wait
-      - name: Check health, migrations and database sessions
+      - run: docker compose --env-file .env -f docker/compose.dev.yaml config --quiet
+      - run: docker compose --env-file .env -f docker/compose.dev.yaml up --build -d --wait
+      - name: Check PHP and application health
         run: |
+          docker compose --env-file .env -f docker/compose.dev.yaml exec -T web sh -c 'find src public -name "*.php" -exec php -l {} \;'
           curl --fail http://localhost:8080/health
-          docker compose -f compose.dev.yaml exec -T -e CI_DISPOSABLE_DB=1 web php tests/database.php
-          docker compose -f compose.dev.yaml exec -T -e CI_DISPOSABLE_DB=1 web php tests/sessions.php
       - if: always()
-        run: docker compose -f compose.dev.yaml down -v
+        run: docker compose --env-file .env -f docker/compose.dev.yaml down -v

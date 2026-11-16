@@ -26,11 +26,6 @@ shutdown() {
     wait "$nginx_pid" 2>/dev/null || true
 }
 
-# Free Render services have no pre-deploy command; migrations are serialized in SQL.
-if [[ "${AUTO_MIGRATE:-0}" == 1 ]]; then
-    DB_HOST="${DB_DIRECT_HOST:-${DB_HOST}}" php /var/www/html/bin/migrate.php
-fi
-
 nginx -t
 php-fpm --test
 
